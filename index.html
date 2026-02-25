@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindShift ⚡ Identity Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Noto+Sans+Sinhala:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--gold:#F5A623;--gold2:#D4911E;--card:#141414;--card2:#1a1a1a;--text:#e8e8e8;--dim:#888;--green:#4CAF50;--red:#e74c3c}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Noto Sans Sinhala',sans-serif;min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.container{max-width:640px;margin:0 auto;padding:20px 16px;position:relative;z-index:1}
+h1,h2,h3,.serif{font-family:'Playfair Display',serif}
+.sinhala{font-family:'Noto Sans Sinhala','DM Sans',sans-serif}
+
+/* Landing */
+.screen{display:none;animation:fadeUp .6s ease both}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes fillBar{from{width:0}to{width:var(--w)}}
+@keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+.landing{text-align:center;padding:60px 0 40px}
+.landing .bolt{font-size:48px;animation:pulse 2s infinite}
+.landing h1{font-size:2.4rem;margin:16px 0 4px;background:linear-gradient(135deg,var(--gold),#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.landing .sub{font-size:1rem;color:var(--dim);margin-bottom:8px}
+.landing .si-title{font-size:1.3rem;color:var(--gold);margin-bottom:32px}
+.landing p{color:var(--dim);line-height:1.7;margin-bottom:32px;font-size:.95rem}
+.trait-preview{display:flex;flex-direction:column;gap:12px;margin:28px 0 36px;text-align:left}
+.trait-chip{background:var(--card);border:1px solid #222;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;transition:border-color .3s}
+.trait-chip:hover{border-color:var(--gold)}
+.trait-chip .icon{font-size:1.4rem;width:36px;text-align:center}
+.trait-chip .label .si{font-weight:600;font-size:.95rem}
+.trait-chip .label .en{font-size:.8rem;color:var(--dim)}
+
+.btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;padding:16px 40px;border-radius:50px;font-size:1.05rem;font-weight:600;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif;letter-spacing:.5px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,166,35,.3)}
+.btn:active{transform:scale(.97)}
+.btn-outline{background:transparent;border:1.5px solid var(--gold);color:var(--gold);padding:12px 28px;border-radius:50px;font-size:.9rem;font-weight:500;cursor:pointer;transition:all .3s;font-family:'DM Sans',sans-serif}
+.btn-outline:hover{background:var(--gold);color:#000}
+
+/* Progress */
+.progress-wrap{margin:20px 0;position:sticky;top:12px;z-index:10}
+.progress-bar{height:4px;background:#1a1a1a;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#fff);border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.progress-text{display:flex;justify-content:space-between;margin-top:6px;font-size:.75rem;color:var(--dim)}
+
+/* Question */
+.question-card{animation:fadeUp .5s ease both}
+.q-number{font-size:.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.q-trait-badge{display:inline-block;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);color:var(--gold);font-size:.7rem;padding:3px 10px;border-radius:20px;margin-bottom:16px}
+.q-text-si{font-size:1.15rem;font-weight:600;line-height:1.7;margin-bottom:6px}
+.q-text-en{font-size:.85rem;color:var(--dim);margin-bottom:28px;line-height:1.5}
+.options{display:flex;flex-direction:column;gap:10px}
+.option{background:var(--card);border:1.5px solid #222;border-radius:14px;padding:16px 18px;cursor:pointer;transition:all .3s;display:flex;gap:12px;align-items:flex-start}
+.option:hover{border-color:var(--gold);background:var(--card2)}
+.option.selected{border-color:var(--gold);background:rgba(245,166,35,.08)}
+.option .marker{width:22px;height:22px;border-radius:50%;border:2px solid #444;flex-shrink:0;margin-top:2px;transition:all .3s;display:flex;align-items:center;justify-content:center}
+.option.selected .marker{border-color:var(--gold);background:var(--gold)}
+.option.selected .marker::after{content:'✓';color:#000;font-size:12px;font-weight:700}
+.option .opt-text .si{font-size:.9rem;line-height:1.5}
+.option .opt-text .en{font-size:.78rem;color:var(--dim);margin-top:2px}
+.nav-buttons{display:flex;justify-content:space-between;margin-top:28px;gap:12px}
+.nav-buttons .btn,.nav-buttons .btn-outline{flex:1}
+
+/* Results */
+.results{padding:20px 0 60px}
+.results-header{text-align:center;margin-bottom:36px}
+.results-header .bolt{font-size:36px}
+.results-header h2{font-size:1.8rem;margin:8px 0}
+.overall-score{text-align:center;margin:28px 0 40px}
+.score-circle{width:140px;height:140px;border-radius:50%;border:4px solid var(--gold);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;animation:scaleIn .6s ease both}
+.score-circle .num{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;color:var(--gold)}
+.score-circle .of{font-size:.75rem;color:var(--dim)}
+.score-label{margin-top:12px;font-size:1.1rem;font-weight:600}
+.score-label-si{color:var(--gold);font-size:1rem;margin-top:4px}
+
+.trait-result{background:var(--card);border:1px solid #1e1e1e;border-radius:16px;padding:24px;margin-bottom:20px;animation:fadeUp .5s ease both}
+.trait-result:nth-child(2){animation-delay:.15s}
+.trait-result:nth-child(3){animation-delay:.3s}
+.trait-result .trait-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.trait-result .trait-name{font-weight:600;font-size:.95rem}
+.trait-result .trait-name-si{font-size:.85rem;color:var(--gold)}
+.trait-result .trait-score{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--gold)}
+.bar-bg{height:8px;background:#222;border-radius:8px;margin:12px 0 16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--gold),#FFD700);animation:fillBar 1s ease both}
+.trait-level{font-size:.8rem;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:12px;font-weight:500}
+.level-low{background:rgba(76,175,80,.15);color:#4CAF50}
+.level-mid{background:rgba(255,193,7,.15);color:#FFC107}
+.level-high{background:rgba(231,76,60,.15);color:#e74c3c}
+.trait-advice{font-size:.88rem;line-height:1.7;color:#ccc}
+.trait-advice .si{margin-bottom:4px}
+.trait-advice .en{color:var(--dim);font-size:.82rem}
+
+.blind-spot{background:linear-gradient(135deg,#1a1508,#140e04);border:1px solid rgba(245,166,35,.2);border-radius:16px;padding:28px;margin:32px 0}
+.blind-spot h3{color:var(--gold);margin-bottom:16px;font-size:1.2rem}
+.blind-spot p{font-size:.88rem;line-height:1.8;margin-bottom:12px}
+.blind-spot .si{color:#ddd}
+.blind-spot .en{color:var(--dim);font-size:.82rem}
+
+.share-section{text-align:center;margin-top:36px}
+.share-section p{font-size:.8rem;color:var(--dim);margin-top:10px}
+.copied{color:var(--green)!important}
+
+@media(min-width:768px){.container{padding:40px 24px}.landing h1{font-size:3rem}.q-text-si{font-size:1.25rem}}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- LANDING -->
+<div class="screen active" id="landing">
+<div class="landing">
+<div class="bolt">⚡</div>
+<h1>MindShift</h1>
+<div class="sub">Identity Audit</div>
+<div class="si-title sinhala">අනන්‍යතා විගණනය</div>
+<p class="sinhala">ඔබේ සැබෑ හැකියාව අවහිර කරන නොපෙනෙන බාධක 3 හඳුනා ගන්න.<br>
+<span style="font-size:.82rem;color:#666">Discover the 3 invisible barriers blocking your true potential.</span></p>
+<div class="trait-preview">
+<div class="trait-chip"><div class="icon">🪞</div><div class="label"><div class="si sinhala">පරාජිත අනන්‍යතාවය</div><div class="en">Defeated Identity</div></div></div>
+<div class="trait-chip"><div class="icon">🐌</div><div class="label"><div class="si sinhala">වෙනසට ඇති අලසකම</div><div class="en">Laziness Towards Change</div></div></div>
+<div class="trait-chip"><div class="icon">👑</div><div class="label"><div class="si sinhala">මාන්‍යය</div><div class="en">Pride / Ego</div></div></div>
+</div>
+<button class="btn" onclick="startQuiz()">ආරම්භ කරන්න · Start Quiz ⚡</button>
+<p style="margin-top:20px;font-size:.75rem;color:#444">ප්‍රශ්න 18ක් · මිනිත්තු 5ක් · 100% පෞද්ගලික</p>
+</div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="quiz">
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+<div class="progress-text"><span id="progressLabel">1 / 18</span><span id="progressPct">0%</span></div>
+</div>
+<div id="questionArea"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="results"></div>
+</div>
+
+<script>
+const questions=[
+// TRAIT 1: Defeated Identity (6 questions)
+{t:0,si:"ඔබට අලුත් අවස්ථාවක් ලැබෙන විට, ඔබේ පළමු සිතුවිල්ල කුමක්ද?",en:"When a new opportunity comes your way, what's your first thought?",opts:[
+{si:"මට මේක කරන්න බෑ — මම එහෙම කෙනෙක් නෙමේ",en:"I can't do this — I'm not that kind of person",s:4},
+{si:"මම try කරන්නම්, ඒත් බොහෝ විට fail වෙයි",en:"I'll try, but I'll probably fail",s:3},
+{si:"බලමු — සමහරවිට වැඩි යාවි",en:"Let's see — maybe it'll work out",s:2},
+{si:"මම මේකට සුදුසුයි — උත්සාහ කරමු",en:"I'm capable — let's go for it",s:1}
+]},
+{t:0,si:"කවුරුහරි ඔබේ background එක ගැන අඩු කොට කතා කරන විට ඔබ කුමක් කරනවාද?",en:"When someone talks down about your background, what do you do?",opts:[
+{si:"ඒක ඇත්ත කියලා හිතෙනවා — මම එතනින් ආවේ ඒ නිසා",en:"I feel it's true — that's where I come from, after all",s:4},
+{si:"කනගාටු වෙනවා, ඒත් මුණ වහගෙන ඉන්නවා",en:"I feel sad but keep quiet",s:3},
+{si:"ටිකක් අමාරුයි, ඒත් ඒකෙන් මාව define කරන්න දෙන්නේ නෑ",en:"It stings, but I won't let it define me",s:2},
+{si:"මගේ background එක මගේ strength එකක්",en:"My background is my strength",s:1}
+]},
+{t:0,si:"ඔබ අසාර්ථක වෙලා ඊළඟ දවසේ ඔබේ self-talk එක මොකක්ද?",en:"After a failure, what does your self-talk sound like the next day?",opts:[
+{si:"මම කවදාවත් හරි යන්නේ නෑ",en:"I'll never get it right",s:4},
+{si:"මේවා මට වෙන්නේ මොකටද",en:"Why do these things always happen to me?",s:3},
+{si:"OK, ඒක වුනා — ඊළඟ එකට focus කරමු",en:"OK that happened — focus on the next one",s:2},
+{si:"මම ඒකෙන් ඉගෙන ගත්තා — ඊළඟ එක වඩා හොඳයි",en:"I learned from it — next one will be better",s:1}
+]},
+{t:0,si:"ඔබට වඩා සාර්ථක කෙනෙක් දැක්කම ඔබට දැනෙන්නේ කුමක්ද?",en:"When you see someone more successful than you, what do you feel?",opts:[
+{si:"මට කවදාවත් එහෙම වෙන්න බෑ",en:"I could never be like that",s:4},
+{si:"ඒ අයට වාසනාව තිබුනා — මට නෑ",en:"They got lucky — I didn't",s:3},
+{si:"ටිකක් ඊර්ෂ්‍යාව දැනෙනවා, ඒත් inspire වෙනවා",en:"A bit jealous, but also inspired",s:2},
+{si:"මටත් පුළුවන් — ඒ අය කළේ මොකක්ද කියලා බලමු",en:"I can too — let me study what they did",s:1}
+]},
+{t:0,si:"\"ඔයාට මේක පුළුවන්\" කියලා කවුරුහරි කිව්වම ඔබට ඇත්තටම දැනෙන්නේ මොකක්ද?",en:"When someone says 'you can do this', what do you actually feel inside?",opts:[
+{si:"ඒ අය මට sympathy කරනවා",en:"They're just being nice / pitying me",s:4},
+{si:"ඒ අයට මගේ ඇත්ත තත්ත්වය තේරෙන්නේ නෑ",en:"They don't know my real situation",s:3},
+{si:"හොඳ feel එකක් — ඒත් 100% විශ්වාස කරන්න අමාරුයි",en:"Feels good — but hard to fully believe",s:2},
+{si:"ඔව්, මම දන්නවා මට පුළුවන් කියලා",en:"Yes, I know I can",s:1}
+]},
+{t:0,si:"ඔබේ life story එක කෙනෙක්ට කියන්න වුනොත්, ඔබ emphasize කරන්නේ මොනවද?",en:"If you had to tell your life story, what would you emphasize?",opts:[
+{si:"මට වුන අසාධාරණකම් සහ දුක් විපත්",en:"The injustices and hardships I faced",s:4},
+{si:"බාධක ගොඩක් තිබුනා — ඒවා නිසා පරක්කු වුනා",en:"Lots of obstacles that held me back",s:3},
+{si:"හොඳ නරක දෙකම — ඒත් ඉගෙන ගත්ත දේවල්",en:"Good and bad — but lessons learned",s:2},
+{si:"මම ආපු ගමන සහ මම තව යන්න ඕනේ තැන",en:"My journey and where I'm headed",s:1}
+]},
+// TRAIT 2: Laziness Towards Change (6 questions)
+{t:1,si:"ඔබ ජීවිතයට වැදගත් පොතක් කියවන්න පටන් ගත්තා. සතියකට පස්සේ තත්ත්වය කුමක්ද?",en:"You started reading a life-changing book. What's the status after a week?",opts:[
+{si:"පොත කොහේද කියලාවත් මතක නෑ",en:"I don't even remember where the book is",s:4},
+{si:"Chapter 1 ඉවර වුනා — ඊට පස්සේ busy වුනා",en:"Finished chapter 1 — then got busy",s:3},
+{si:"අඩක් විතර කියෙව්වා — pace එක slow",en:"Read about half — slow pace",s:2},
+{si:"ඉවර කරලා notes ගත්තා",en:"Finished and took notes",s:1}
+]},
+{t:1,si:"ඔබට body transform කරන්න ඕනේ කියලා decide කළා. මාසයකට පස්සේ?",en:"You decided to transform your body. One month later?",opts:[
+{si:"තාමත් \"සඳුදා ඉඳන්\" plan එකේ",en:"Still on the 'starting Monday' plan",s:4},
+{si:"දවස් 3-4ක් gym ගියා, ඊට පස්සේ නැවතුනා",en:"Went to gym 3-4 days, then stopped",s:3},
+{si:"Consistent නෑ, ඒත් සම්පූර්ණයෙන් නැවතුනේ නෑ",en:"Not consistent, but didn't fully stop",s:2},
+{si:"Plan එකට අනුව යයි — missed days recover කරනවා",en:"Following the plan — recovering missed days",s:1}
+]},
+{t:1,si:"ඔබේ comfort zone එකෙන් එළියට යන්න ඕනේ situation එකක් ආවා. ඔබේ reaction?",en:"A situation requires you to step outside your comfort zone. Your reaction?",opts:[
+{si:"හේතු හොයලා avoid කරනවා",en:"Find reasons to avoid it",s:4},
+{si:"\"පස්සේ කරන්නම්\" කියලා postpone කරනවා",en:"Postpone it — 'I'll do it later'",s:3},
+{si:"Nervous ඒත් try කරනවා",en:"Nervous but I try",s:2},
+{si:"Excited — growth opportunity එකක්",en:"Excited — it's a growth opportunity",s:1}
+]},
+{t:1,si:"ඔබට skill එකක් ඉගෙන ගන්න online course එකක් මිලදී ගත්තා. මාස 3කට පස්සේ?",en:"You bought an online course to learn a new skill. After 3 months?",opts:[
+{si:"Login වුනේවත් නෑ",en:"Never even logged in",s:4},
+{si:"පළමු module එක බැලුවා — ඊට පස්සේ pause",en:"Watched first module — then paused",s:3},
+{si:"අඩක් විතර ඉවර — speed එක low",en:"About halfway — slow progress",s:2},
+{si:"Complete කරලා apply කරන්න පටන් ගත්තා",en:"Completed and started applying it",s:1}
+]},
+{t:1,si:"ඔබේ දිනචර්යාව (daily routine) ගැන honest assessment එකක් දුන්නොත්?",en:"If you gave an honest assessment of your daily routine?",opts:[
+{si:"Plan එකක් නෑ — දවස \"flow\" වෙන්න දෙනවා",en:"No plan — I let the day flow",s:4},
+{si:"Plan කරනවා ඒත් follow කරන්නේ කලාතුරකින්",en:"I plan but rarely follow through",s:3},
+{si:"Mostly structured — ඒත් distracted වෙන දවස් තියෙනවා",en:"Mostly structured — some distracted days",s:2},
+{si:"Clear routine එකක් — දවසේ hours guard කරනවා",en:"Clear routine — I protect my hours",s:1}
+]},
+{t:1,si:"\"ඔබ දන්නවා කරන්න ඕනේ මොකක්ද කියලා — ඒත් කරන්නේ නෑ\" මේක ඔබට apply වෙනවද?",en:"'You know what to do — but don't do it.' Does this apply to you?",opts:[
+{si:"100% — මම හරියටම දන්නවා ඒත් action ගන්නේ නෑ",en:"100% — I know exactly what to do but take no action",s:4},
+{si:"ඔව්, ගොඩක් වෙලාවට",en:"Yes, most of the time",s:3},
+{si:"සමහර areas වලදී — ඒත් මම improve වෙනවා",en:"In some areas — but I'm improving",s:2},
+{si:"නෑ — මම දන්න දේ execute කරනවා",en:"No — I execute what I know",s:1}
+]},
+// TRAIT 3: Pride/Ego (6 questions)
+{t:2,si:"ඔබට වඩා අවුරුදු 10ක් බාල කෙනෙක් ඔබට උපදෙස් දුන්නොත්?",en:"If someone 10 years younger gives you advice?",opts:[
+{si:"ඒ කෙනාට මොකද මගේ ජීවිතය ගැන කියන්න",en:"What do they know about my life?",s:4},
+{si:"ඇහුම්කන් දෙන බව පෙන්නනවා ඒත් ඇතුළත reject කරනවා",en:"Pretend to listen but internally reject it",s:3},
+{si:"ටිකක් ego hit එකක් — ඒත් හොඳ point නම් ගන්නවා",en:"Slight ego hit — but take the point if it's good",s:2},
+{si:"Age matter වෙන්නේ නෑ — හොඳ advice නම් ගන්නවා",en:"Age doesn't matter — good advice is good advice",s:1}
+]},
+{t:2,si:"Mentor කෙනෙක්/teacher කෙනෙක් ඔබට harsh feedback දුන්නොත්?",en:"When a mentor or teacher gives you harsh feedback?",opts:[
+{si:"ඒ කෙනාගේ flaws ගැන හිතනවා — \"ඌට මොකද කියන්න\"",en:"Think about their flaws — 'who are they to talk'",s:4},
+{si:"Defensive වෙනවා — justify කරනවා",en:"Get defensive — try to justify myself",s:3},
+{si:"දැවෙනවා — ඒත් පස්සේ accept කරනවා",en:"It burns — but I accept it later",s:2},
+{si:"Thank you — මට ඒක ඕනේ වුනා",en:"Thank you — I needed that",s:1}
+]},
+{t:2,si:"Group discussion එකකදී ඔබේ idea එක reject වුනොත්?",en:"In a group discussion, if your idea gets rejected?",opts:[
+{si:"\"මේ අයට තේරෙන්නේ නෑ\" කියලා හිතනවා",en:"'These people don't understand' — I think",s:4},
+{si:"Quiet වෙනවා ඒත් ඇතුළත irritated",en:"Go quiet but feel irritated inside",s:3},
+{si:"Disappointed ඒත් ඒ අයගේ point එක consider කරනවා",en:"Disappointed but consider their perspective",s:2},
+{si:"OK — better idea එක win වෙන්න ඕනේ",en:"OK — the best idea should win",s:1}
+]},
+{t:2,si:"ඔබ වැරදි බව prove වුනොත්, ඔබේ immediate reaction?",en:"When you're proven wrong, what's your immediate reaction?",opts:[
+{si:"\"ඒක එහෙම නෙමේ\" — ඒත් evidence ignore කරනවා",en:"'That's not right' — ignore the evidence",s:4},
+{si:"Subject එක change කරනවා",en:"Change the subject",s:3},
+{si:"Accept කරනවා — ඒත් ටිකක් අමාරුයි",en:"Accept it — but it's hard",s:2},
+{si:"\"ආ, ඔබ හරි — මට තේරුනේ නෑ\" කියලා open වෙනවා",en:"'Oh you're right — I didn't see that' — I'm open",s:1}
+]},
+{t:2,si:"ඔබට යමක් ඉගෙන ගන්න ඕනේ නම්, ඔබ prefer කරන්නේ?",en:"When you need to learn something, what do you prefer?",opts:[
+{si:"මම එකපාරම අහන්නේ නෑ — මම Google කරනවා",en:"I won't ask anyone — I'll Google it myself",s:4},
+{si:"ඇත්තටම ඕනේ වෙනකන් අහන්නේ නෑ",en:"Won't ask until I absolutely have to",s:3},
+{si:"අහනවා — ඒත් ටිකක් hesitate වෙනවා",en:"I'll ask — but with some hesitation",s:2},
+{si:"වහාම දන්න කෙනෙක්ගෙන් අහනවා",en:"Immediately ask someone who knows",s:1}
+]},
+{t:2,si:"ඔබ respect නොකරන කෙනෙක්ගෙන් ඇත්තටම ප්‍රයෝජනවත් දෙයක් ඉගෙන ගන්න පුළුවන්ද?",en:"Can you learn something truly useful from someone you don't respect?",opts:[
+{si:"නෑ — ඒ වගේ කෙනෙක්ගෙන් මම ඉගෙන ගන්නේ නෑ",en:"No — I won't learn from someone like that",s:4},
+{si:"Theory එකේ ඔව් — ඒත් practically මට අමාරුයි",en:"In theory yes — but practically it's hard for me",s:3},
+{si:"ඔව්, ඒත් effort එකක් දාන්න වෙනවා",en:"Yes, but it takes effort",s:2},
+{si:"ඔව් — හැම කෙනෙක්ටම මට ඉගැන්වීමට යමක් තියෙනවා",en:"Yes — everyone has something to teach me",s:1}
+]},
+];
+
+const traitNames=[
+{si:"පරාජිත අනන්‍යතාවය",en:"Defeated Identity",icon:"🪞"},
+{si:"වෙනසට ඇති අලසකම",en:"Laziness Towards Change",icon:"🐌"},
+{si:"මාන්‍යය",en:"Pride / Ego",icon:"👑"}
+];
+
+let current=0, answers=[];
+
+function showScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function startQuiz(){
+current=0;answers=new Array(questions.length).fill(null);
+showScreen('quiz');renderQuestion();
+}
+
+function renderQuestion(){
+const q=questions[current];
+const pct=Math.round((current/questions.length)*100);
+document.getElementById('progressFill').style.width=pct+'%';
+document.getElementById('progressLabel').textContent=`${current+1} / ${questions.length}`;
+document.getElementById('progressPct').textContent=pct+'%';
+const trait=traitNames[q.t];
+let html=`<div class="question-card">
+<div class="q-number">ප්‍රශ්නය ${current+1} · Question ${current+1}</div>
+<div class="q-trait-badge">${trait.icon} ${trait.si} · ${trait.en}</div>
+<div class="q-text-si sinhala">${q.si}</div>
+<div class="q-text-en">${q.en}</div>
+<div class="options">`;
+q.opts.forEach((o,i)=>{
+const sel=answers[current]===i?'selected':'';
+html+=`<div class="option ${sel}" onclick="selectOption(${i})">
+<div class="marker"></div>
+<div class="opt-text"><div class="si sinhala">${o.si}</div><div class="en">${o.en}</div></div>
+</div>`;
+});
+html+=`</div><div class="nav-buttons">`;
+if(current>0) html+=`<button class="btn-outline" onclick="prev()">← ආපසු</button>`;
+else html+=`<div></div>`;
+if(current<questions.length-1) html+=`<button class="btn" id="nextBtn" onclick="next()" ${answers[current]===null?'disabled style="opacity:.4;pointer-events:none"':''}>ඊළඟට →</button>`;
+else html+=`<button class="btn" id="nextBtn" onclick="showResults()" ${answers[current]===null?'disabled style="opacity:.4;pointer-events:none"':''}>ප්‍රතිඵල බලන්න ⚡</button>`;
+html+=`</div></div>`;
+document.getElementById('questionArea').innerHTML=html;
+}
+
+function selectOption(i){
+answers[current]=i;
+renderQuestion();
+}
+function next(){if(answers[current]!==null&&current<questions.length-1){current++;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});}}
+function prev(){if(current>0){current--;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});}}
+
+function showResults(){
+if(answers.some(a=>a===null))return;
+const traitScores=[0,0,0],traitCounts=[0,0,0],traitMaxAnswers=[[],[],[]];
+questions.forEach((q,i)=>{
+const score=q.opts[answers[i]].s;
+traitScores[q.t]+=score;
+traitCounts[q.t]++;
+traitMaxAnswers[q.t].push({q,chosen:q.opts[answers[i]],score,idx:i});
+});
+const traitMax=traitCounts.map(c=>c*4);
+const total=traitScores.reduce((a,b)=>a+b,0);
+const totalMax=traitMax.reduce((a,b)=>a+b,0);
+const overallPct=Math.round((total/totalMax)*100);
+// Level labels
+const levelInfo=(score,max)=>{
+const pct=score/max;
+if(pct<=0.35)return{level:'low',si:'අවම බලපෑම',en:'Low Impact',cls:'level-low'};
+if(pct<=0.65)return{level:'mid',si:'මධ්‍යම බලපෑම',en:'Moderate Impact',cls:'level-mid'};
+return{level:'high',si:'ඉහළ බලපෑම',en:'High Impact — Needs Attention',cls:'level-high'};
+};
+const overallLabel=overallPct<=35?{si:'ඔබ ශක්තිමත් පදනමක',en:'You have a strong foundation'}:overallPct<=60?{si:'වර්ධනය සඳහා ඉඩ තියෙනවා',en:'Room for growth'}:{si:'සැලකිය යුතු අවහිරතා',en:'Significant blocks detected'};
+
+// Advice per trait per level
+const advice=[
+[{si:"ඔබේ අනන්‍යතාව ශක්තිමත්. ඔබ ඔබව victim ලෙස නොදකී.",en:"Your identity is strong. You don't see yourself as a victim."},
+{si:"ඔබ සමහර විට පැරණි stories වලට ඇදී යනවා. ඒවා ඔබේ ඇත්ත නෙමේ — ඔබ ඊට වඩා වැඩි.",en:"Sometimes old stories pull you back. They're not your truth — you're more than that."},
+{si:"සමාජය ඔබට දුන් 'පරාජිත' label එක ඔබ accept කරලා. ඔබේ සැබෑ බලය මතක් කරගන්න — ඔබ රජෙකුගේ/නිදහස් සිතක පරම්පරාවෙන් ආවේ.",en:"You've accepted the 'defeated' label society gave you. Remember your true power — you come from a lineage of kings and free minds."}],
+[{si:"ඔබ action ගන්න දක්ෂයි. Execution ඔබේ ශක්තියක්.",en:"You're great at taking action. Execution is your strength."},
+{si:"ඔබ plan කරනවා ඒත් execution gap එකක් තියෙනවා. Small daily wins වලින් පටන් ගන්න.",en:"You plan but have an execution gap. Start with small daily wins."},
+{si:"ඔබ comfort zone එකේ සිරවී ඉන්නවා. \"දන්නවා ඒත් කරන්නේ නෑ\" syndrome එකෙන් මිදෙන්න — එක දෙයක් අද ම කරන්න.",en:"You're trapped in your comfort zone. Break the 'know but don't do' syndrome — do ONE thing today."}],
+[{si:"ඔබ teachable — ego ඔබේ ඉගෙනීමට බාධාවක් නෑ.",en:"You're teachable — ego isn't blocking your learning."},
+{si:"සමහර විට ego ඔබේ ඉගෙනීම block කරනවා. ගුරුවරයාගේ දෝෂ බලනවා වෙනුවට පණිවිඩයට අවධානය දෙන්න.",en:"Sometimes ego blocks your learning. Focus on the message, not the messenger's flaws."},
+{si:"ඔබේ ego ඔබේ ලොකුම සතුරා. ඔබ ගුරුවරුන්ගේ වැරදි හොයනවා ඉගෙනීම වෙනුවට. හිස නමා ඉගෙන ගන්න — ඒක දුර්වලකමක් නෙමේ, ශක්තියක්.",en:"Your ego is your biggest enemy. You find fault in teachers instead of learning. Humility isn't weakness — it's power."}]
+];
+
+// Blind spot analysis
+let blindSpots=[];
+traitMaxAnswers.forEach((arr,t)=>{
+const worst=arr.filter(a=>a.score>=3).sort((a,b)=>b.score-a.score);
+if(worst.length>0){
+const w=worst[0];
+blindSpots.push({trait:traitNames[t],q:w.q,chosen:w.chosen,score:w.score});
+}
+});
+
+let html=`<div class="results"><div class="results-header"><div class="bolt">⚡</div><h2>ඔබේ ප්‍රතිඵල</h2><p style="color:var(--dim)">Your Results</p></div>
+<div class="overall-score"><div class="score-circle"><div class="num">${total}</div><div class="of">/ ${totalMax}</div></div>
+<div class="score-label">${overallLabel.en}</div><div class="score-label-si sinhala">${overallLabel.si}</div></div>`;
+
+traitNames.forEach((trait,t)=>{
+const info=levelInfo(traitScores[t],traitMax[t]);
+const pct=Math.round((traitScores[t]/traitMax[t])*100);
+const adv=info.level==='low'?advice[t][0]:info.level==='mid'?advice[t][1]:advice[t][2];
+html+=`<div class="trait-result"><div class="trait-head"><div><div class="trait-name">${trait.icon} ${trait.en}</div><div class="trait-name-si sinhala">${trait.si}</div></div><div class="trait-score">${traitScores[t]}/${traitMax[t]}</div></div>
+<div class="bar-bg"><div class="bar-fill" style="--w:${pct}%"></div></div>
+<span class="trait-level ${info.cls}">${info.si} · ${info.en}</span>
+<div class="trait-advice"><div class="si sinhala">${adv.si}</div><div class="en">${adv.en}</div></div></div>`;
+});
+
+if(blindSpots.length>0){
+html+=`<div class="blind-spot"><h3>🔍 Blind Spot Analysis · අන්ධ ලක්ෂ්‍ය විශ්ලේෂණය</h3>`;
+blindSpots.forEach(b=>{
+html+=`<p><strong>${b.trait.icon} ${b.trait.en}:</strong></p>
+<p class="si sinhala">ප්‍රශ්නය: "${b.q.si}"<br>ඔබේ පිළිතුර: "<strong>${b.chosen.si}</strong>"<br>
+මෙය පෙන්නුම් කරන්නේ ඔබේ ${b.trait.si} trait එක actively ඔබව limit කරන බවයි.</p>
+<p class="en">Question: "${b.q.en}"<br>Your answer: "<strong>${b.chosen.en}</strong>"<br>
+This reveals that ${b.trait.en.toLowerCase()} is actively limiting you in real scenarios.</p><br>`;
+});
+html+=`</div>`;
+}
+
+// Share
+const shareText=`⚡ MindShift Identity Audit Results\n\n🪞 Defeated Identity: ${traitScores[0]}/${traitMax[0]}\n🐌 Laziness Towards Change: ${traitScores[1]}/${traitMax[1]}\n👑 Pride/Ego: ${traitScores[2]}/${traitMax[2]}\n\nOverall: ${total}/${totalMax} (${overallPct}%)\n${overallLabel.en}`;
+
+html+=`<div class="share-section"><button class="btn" onclick="shareResults(this)">📋 Share Results · ප්‍රතිඵල බෙදාගන්න</button><p id="shareMsg"></p></div>
+<div style="text-align:center;margin-top:24px"><button class="btn-outline" onclick="startQuiz()">🔄 නැවත කරන්න · Retake</button></div></div>`;
+
+document.getElementById('results').innerHTML=html;
+window._shareText=shareText;
+showScreen('results');
+}
+
+function shareResults(btn){
+navigator.clipboard.writeText(window._shareText).then(()=>{
+document.getElementById('shareMsg').textContent='✓ Copied!';
+document.getElementById('shareMsg').className='copied';
+});
+}
+</script>
+</body>
+</html>
